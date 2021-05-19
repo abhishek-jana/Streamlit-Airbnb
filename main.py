@@ -7,12 +7,15 @@ from bs4 import BeautifulSoup
 from collections import defaultdict
 import re
 
-st.title('Airbnb Housing Analysis')
+st.set_page_config(layout="wide")
+
+
+header = st.beta_container()
+dataset = st.beta_container()
 
 #load the data
 
 page = requests.get("http://insideairbnb.com/get-the-data.html")
-
 soup = BeautifulSoup(page.content, 'html.parser')
 content = soup.find("div",{"class" : "contentContainer"})
 
@@ -34,23 +37,27 @@ for i in range(len(place)):
             location.append(loc[:2])
         else:
             location.append(loc[:-1])
-#         #st.write(loc[0].lower())
-#         table = place[i].find("table",{"class":f"table table-hover table-striped {loc[0].lower()}"})
-#         table_data = table.tbody.find_all("tr") 
-#         st.write(table_data[0].find_all("td"))
+
 
 for city,state in location:
     location_dict[state].append(city)   
 
 
 
-st.sidebar.title("Select Location")
-country = st.sidebar.selectbox("Country",["United States"])
-if country == 'United States':
-    selected_state = st.sidebar.selectbox("Choose State",list(location_dict.keys()))
-    if selected_state in location_dict.keys():
-        selected_city = st.sidebar.selectbox("Choose City", location_dict[selected_state])
 
+with header:
+    st.markdown("<h1 style='text-align: center; color: black;'>Airbnb Housing Analysis</h1>", unsafe_allow_html=True)
+    #st.title('Airbnb Housing Analysis')
+    country_col, state_col, city_col = st.beta_columns(3)
+    #st.sidebar.title("Select Location")
+    country_col.subheader("Choose Country")
+    state_col.subheader("Choose State")
+    city_col.subheader("Choose City")
+    country = country_col.selectbox("",["United States"])
+    if country == 'United States':
+        selected_state = state_col.selectbox('',list(location_dict.keys()))
+        if selected_state in location_dict.keys():            
+            selected_city = city_col.selectbox("", location_dict[selected_state])
 
 selected_city = re.sub('[,]+',' ',selected_city) #remove comma
 selected_city = re.sub('[.?!]+','',selected_city) #remove other punctuation
@@ -112,6 +119,7 @@ listings_data = load_listings_data(listings_url)
 # st.dataframe(review_data)
 #st.dataframe(listings_data.columns)
 #st.dataframe(neighbourhoods_data)
+
 
 
 st.table(listings_data.groupby("room_type").price.mean().reset_index()\
